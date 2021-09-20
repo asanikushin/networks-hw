@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Anikushin hw1</title>
+    <style>
+        table, th, td {
+            border: medium solid;
+        }
+    </style>
+    <script>
+        function getRandomArbitrary(min, max) {
+            return Math.floor(Math.random() * (max - min)) + min;
+        }
+
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[getRandomArbitrary(0, 16)];
+            }
+            return color;
+        }
+
+        let Colors = [];
+
+        function loadM() {
+            const cntSelect = document.frm.cnt
+            let cnt = cntSelect.options[cntSelect.selectedIndex].text;
+            let s = "<table id='shown'>";
+            if (cnt[cnt.length - 1] === "+") {
+                cnt = getRandomArbitrary(10, 21);
+            }
+
+            Colors.length = cnt
+            for (let i = 0; i < cnt; i++) {
+                Colors[i] = getRandomColor()
+                s += "<tr><th>"
+                s += "<button class='colored-button' onclick='lockOther(this)'>" + Colors[i] + "</button>";
+                s += "</th></tr>"
+            }
+            s += "</table>"
+
+            document.getElementById("demo").innerHTML = s
+            document.getElementById("shown").style.borderColor = getRandomColor()
+            let colored = document.getElementsByClassName('colored-button')
+            for (let i = 0; i < colored.length; i++) {
+                colored[i].style.color = Colors[i];
+            }
+        }
+
+        function lockOther(obj) {
+            let colored = document.getElementsByClassName('colored-button')
+            for (let i = 0; i < colored.length; i++) {
+                if (colored[i] !== obj) {
+                    colored[i].disabled = true;
+                    colored[i].style.color = obj.style.color
+                }
+            }
+        }
+
+        function addCntOptions() {
+            document.frm.cnt.options.length = 11
+            for (let i = 0; i < document.frm.cnt.options.length - 1; i++) {
+                document.frm.cnt.options[i].value = "C-" + (i + 1)
+                document.frm.cnt.options[i].text = i + 1
+            }
+            document.frm.cnt.options[document.frm.cnt.options.length - 1].value = "C-" + (document.frm.cnt.options.length)
+            document.frm.cnt.options[document.frm.cnt.options.length - 1].text = document.frm.cnt.options.length - 1 + "+"
+        }
+    </script>
+</head>
+<body>
+<form name="frm">
+    <br>
+    <input type="button" onclick="loadM()" value="Make table"><br>
+    <label>
+        <select name="cnt">
+        </select>
+        <script>addCntOptions()</script>
+    </label>
+</form>
+
+<div>
+    <p id="result"></p>
+</div>
+</body>
+</html>
