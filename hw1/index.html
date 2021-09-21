@@ -6,6 +6,11 @@
     <style>
         table, th, td {
             border: medium solid;
+            width: 10cm;
+        }
+
+        button.colored-button {
+            width: 10cm;
         }
     </style>
     <script>
@@ -22,21 +27,31 @@
             return color;
         }
 
+        function componentToHex(c) {
+            const hex = c.toString(16);
+            return (hex.length === 1 ? "0" + hex : hex).toUpperCase();
+        }
+
+        function rgbToHex(r, g, b) {
+            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+        }
+
         let Colors = [];
 
-        function loadM() {
+        function makeTable() {
             const cntSelect = document.frm.cnt
             let cnt = cntSelect.options[cntSelect.selectedIndex].text;
-            let s = "<table id='shown'>";
             if (cnt[cnt.length - 1] === "+") {
                 cnt = getRandomArbitrary(10, 21);
             }
-
             Colors.length = cnt
+
+            let s = "<table id='shown'>";
             for (let i = 0; i < cnt; i++) {
                 Colors[i] = getRandomColor()
                 s += "<tr><th>"
-                s += "<button class='colored-button' onclick='lockOther(this)'>" + Colors[i] + "</button>";
+                s += "<button class='colored-button' onclick='lockOther(this, event)'" +
+                    " onmousemove='mouseMove(this, event)'>" + Colors[i] + "</button>";
                 s += "</th></tr>"
             }
             s += "</table>"
@@ -49,7 +64,11 @@
             }
         }
 
-        function lockOther(obj) {
+        function lockOther(obj, event) {
+            if (event.shiftKey) {
+                window.open(('https://yandex.ru/search/?text=color+%23' + obj.innerText.substr(1, 6)))
+                return
+            }
             let colored = document.getElementsByClassName('colored-button')
             for (let i = 0; i < colored.length; i++) {
                 if (colored[i] !== obj) {
@@ -67,13 +86,34 @@
             }
             document.frm.cnt.options[document.frm.cnt.options.length - 1].value = "C-" + (document.frm.cnt.options.length)
             document.frm.cnt.options[document.frm.cnt.options.length - 1].text = document.frm.cnt.options.length - 1 + "+"
+            document.frm.cnt.selectedIndex = 10
+        }
+
+        function mouseMove(obj, event) {
+            if (!event.ctrlKey) {
+                return
+            }
+            let rgb = obj.style.color
+            rgb = rgb.substring(4, rgb.length - 1)
+                .replace(/ /g, '')
+                .split(',');
+            rgb[2] = parseInt(rgb[2]) + event.movementX
+
+            if (rgb[2] < 0) {
+                rgb[2] = 0
+            } else if (rgb[2] > 255) {
+                rgb[2] = 255
+            }
+
+            obj.style.color = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")"
+            obj.innerText = rgbToHex(parseInt(rgb[0]), parseInt(rgb[1]), rgb[2])
         }
     </script>
 </head>
 <body>
 <form name="frm">
     <br>
-    <input type="button" onclick="loadM()" value="Make table"><br>
+    <input type="button" onclick="makeTable()" value="Make table"><br>
     <label>
         <select name="cnt">
         </select>
