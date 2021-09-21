@@ -1,69 +1,103 @@
+<!--
+В HTML-документе определены 2 формы.
+На первой управляющие кнопки и поля ввода, вторая  - пустая.
+При нажатии на кнопки первой формы на второй форме генерируются элементы (а).
+Параметры и количество элементов определяются в элементах 1-й формы(б),
+а также заданы в виде массивов на JavaScript.
+После построения элементов на второй форме по некоторым кнопкам/элементам
+можно произвести некоторые действия (в), результаты которых отображаются на 2-форме.
+Для генерации элементов и вывода результатов использовать свойство innerHTML.
+Примечание. Уточнения постановки производить самостоятельно.
+
+12. (а) TABLE из одного столбца, содержащих кнопки
+(б)В элементе SELECT указать число ячеек таблицы.
+(в)При нажатии на одну кнопку другие становятся недоступными
+Значения кнопок заданы в массиве
+-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Anikushin hw1</title>
+    <title>Anikushin hw1, var 1</title>
     <style>
         table, th, td {
             border: medium solid;
-            width: 10cm;
+            width: 10cm
         }
 
         button.colored-button {
-            width: 10cm;
+            width: 10cm
         }
     </style>
     <script>
         function getRandomArbitrary(min, max) {
-            return Math.floor(Math.random() * (max - min)) + min;
+            return Math.floor(Math.random() * (max - min)) + min
         }
 
+        // generate random color for button and borders
         function getRandomColor() {
-            const letters = '0123456789ABCDEF';
-            let color = '#';
+            const letters = '0123456789ABCDEF'
+            let color = '#'
             for (let i = 0; i < 6; i++) {
-                color += letters[getRandomArbitrary(0, 16)];
+                color += letters[getRandomArbitrary(0, 16)]
             }
-            return color;
+            return color
         }
 
+        // additional funcs for conversions
         function componentToHex(c) {
-            const hex = c.toString(16);
-            return (hex.length === 1 ? "0" + hex : hex).toUpperCase();
+            const hex = c.toString(16)
+            return (hex.length === 1 ? "0" + hex : hex).toUpperCase()
         }
 
         function rgbToHex(r, g, b) {
-            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b);
+            return "#" + componentToHex(r) + componentToHex(g) + componentToHex(b)
         }
 
-        let Colors = [];
+        // array with button init colors, generate in realtime
+        let Colors = []
+        let disabled = false
 
+        // generate table with buttons
         function makeTable() {
             const cntSelect = document.frm.cnt
-            let cnt = cntSelect.options[cntSelect.selectedIndex].text;
+            let cnt = cntSelect.options[cntSelect.selectedIndex].text
             if (cnt[cnt.length - 1] === "+") {
-                cnt = getRandomArbitrary(10, 21);
+                cnt = getRandomArbitrary(10, 21)
             }
             Colors.length = cnt
 
-            let s = "<table id='shown'>";
+            let s = "<table id='shown'>"
             for (let i = 0; i < cnt; i++) {
                 Colors[i] = getRandomColor()
                 s += "<tr><th>"
                 s += "<button class='colored-button' onclick='lockOther(this, event)'" +
-                    " onmousemove='mouseMove(this, event)'>" + Colors[i] + "</button>";
+                    " onmousemove='mouseMove(this, event)'>" + Colors[i] + "</button>"
                 s += "</th></tr>"
             }
             s += "</table>"
+            s += "<input type='button' onclick='resetColors()' value='Reset colors'>"
 
             document.getElementById("result").innerHTML = s
             document.getElementById("shown").style.borderColor = getRandomColor()
             let colored = document.getElementsByClassName('colored-button')
             for (let i = 0; i < colored.length; i++) {
-                colored[i].style.color = Colors[i];
+                colored[i].style.color = Colors[i]
             }
         }
 
+        function resetColors() {
+            if (disabled) {
+                return
+            }
+            let colored = document.getElementsByClassName('colored-button')
+            for (let i = 0; i < colored.length; i++) {
+                colored[i].style.color = Colors[i]
+            }
+        }
+
+        // table button main action (on click)
         function lockOther(obj, event) {
             if (event.shiftKey) {
                 window.open(('https://yandex.ru/search/?text=color+%23' + obj.innerText.substr(1, 6)))
@@ -72,23 +106,16 @@
             let colored = document.getElementsByClassName('colored-button')
             for (let i = 0; i < colored.length; i++) {
                 if (colored[i] !== obj) {
-                    colored[i].disabled = true;
+                    colored[i].disabled = true
                     colored[i].style.color = obj.style.color
                 }
             }
-        }
-
-        function addCntOptions() {
-            document.frm.cnt.options.length = 11
-            for (let i = 0; i < document.frm.cnt.options.length - 1; i++) {
-                document.frm.cnt.options[i].value = "C-" + (i + 1)
-                document.frm.cnt.options[i].text = i + 1
+            if (obj != null) {
+                disabled = true
             }
-            document.frm.cnt.options[document.frm.cnt.options.length - 1].value = "C-" + (document.frm.cnt.options.length)
-            document.frm.cnt.options[document.frm.cnt.options.length - 1].text = document.frm.cnt.options.length - 1 + "+"
-            document.frm.cnt.selectedIndex = 10
         }
 
+        // table button additional action (on move) - change blue component in color
         function mouseMove(obj, event) {
             if (!event.ctrlKey) {
                 return
@@ -96,7 +123,7 @@
             let rgb = obj.style.color
             rgb = rgb.substring(4, rgb.length - 1)
                 .replace(/ /g, '')
-                .split(',');
+                .split(',')
             rgb[2] = parseInt(rgb[2]) + event.movementX
 
             if (rgb[2] < 0) {
@@ -108,11 +135,48 @@
             obj.style.color = "rgb(" + rgb[0] + "," + rgb[1] + "," + rgb[2] + ")"
             obj.innerText = rgbToHex(parseInt(rgb[0]), parseInt(rgb[1]), rgb[2])
         }
+
+        // fill select input
+        function addCntOptions() {
+            document.frm.cnt.options.length = 11
+            for (let i = 0; i < document.frm.cnt.options.length - 1; i++) {
+                document.frm.cnt.options[i].value = "C-" + (i + 1)
+                document.frm.cnt.options[i].text = i + 1
+            }
+            document.frm.cnt.options[document.frm.cnt.options.length - 1].value = "C-" + (document.frm.cnt.options.length)
+            document.frm.cnt.options[document.frm.cnt.options.length - 1].text = document.frm.cnt.options.length - 1 + "+"
+            document.frm.cnt.selectedIndex = 10
+        }
     </script>
 </head>
 <body>
+<div>
+    <h3><a href="https://docs.google.com/document/d/1eE9RMnd-n1lB8_euRu1uNBwYyf4xbZU44n1U27v1YV0/edit">Задание 1</a>
+    </h3>
+    <div>
+        <p>
+            В HTML-документе определены 2 формы.<br>
+            На первой управляющие кнопки и поля ввода, вторая - пустая.
+            При нажатии на кнопки первой формы на второй форме генерируются элементы (а).
+            Параметры и количество элементов определяются в элементах 1-й формы(б), а также заданы в виде массивов на
+            JavaScript. <br>
+            После построения элементов на второй форме по некоторым кнопкам/элементам
+            можно произвести некоторые действия (в), результаты которых отображаются на 2-форме.<br>
+            Для генерации элементов и вывода результатов использовать свойство innerHTML.<br>
+        </p>
+    </div>
+    <div>
+        <p>
+            12. (а) TABLE из одного столбца, содержащих кнопки <br>
+            (б)В элементе SELECT указать число ячеек таблицы.<br>
+            (в)При нажатии на одну кнопку другие становятся недоступными.<br>
+            Значения кнопок заданы в массиве
+        </p>
+    </div>
+
+</div>
+<h3>Решение</h3>
 <form name="frm">
-    <br>
     <input type="button" onclick="makeTable()" value="Make table"><br>
     <label>
         <select name="cnt">
