@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Anikushin hw2, N 2</title>
+    <style>
+        table, th, td {
+            border: thin solid;
+            width: 10cm
+        }
+    </style>
+</head>
+<body>
+<div id="task">
+    <h1><a href="https://docs.google.com/document/d/1-OuKdZ0UWr99ZXLl_wgB3Jwpw7LfSMO5j8Yo34coTxY/edit">Задание 2</a>
+    </h1>
+    <div>
+        <p>Справочник должен</p>
+        <ol>
+            <li> отображаться в виде таблицы</li>
+            <li>содержать несколько полей 5. Первое поле ключевое.</li>
+            <li>добавление элемента справочника по нажатию Enter в одном поле, где значения отделяются запятой</li>
+            <li>позволять удалять отдельные элементы по номеру строки</li>
+        </ol>
+    </div>
+</div>
+<div class="data-storage">
+    <h1>Решение</h1>
+    <form id="form" onsubmit="submitForm(event)">
+        <label for="new">Новая запись: </label><input id="new" type="text"/>
+    </form>
+    <h2>Объекты</h2>
+    <table id="storage-show">
+        <thead>
+        <tr>
+            <th>Номер</th>
+            <th>Ключ</th>
+            <th>Клиент</th>
+            <th>Сумма</th>
+            <th>Догвор</th>
+            <th>Статус</th>
+        </tr>
+        </thead>
+        <tbody id="content"></tbody>
+    </table>
+    <hr>
+    <label for="removeInd">Номер строки: </label><input id="removeInd" type="text"/>
+    <button id="removeButton" onclick="deleteLine(event)">Удалить строку</button>
+    <button id="clearButton" onclick="clearAll(event)">Удалить все</button>
+</div>
+</body>
+<script>
+    const content = document.getElementById("content");
+    const input = document.getElementById("new");
+    const inputId = document.getElementById("removeInd");
+
+    let itemsMap = localStorage.getItem("items")
+        ? jsonToMap(localStorage.getItem("items"))
+        : new Map;
+
+    localStorage.setItem("items", mapToJson(itemsMap));
+    const data = jsonToMap(localStorage.getItem("items"));
+    let count = data.size;
+
+    function renumerate() {
+        let rows = content.getElementsByClassName('content-row')
+        for (let i = 0; i < rows.length; ++i) {
+            itemsMap.set(i, itemsMap.get(parseInt(rows[i].getElementsByClassName('index')[0].textContent)))
+            if (parseInt(rows[i].getElementsByClassName('index')[0].textContent) !== i) {
+                itemsMap.delete(parseInt(rows[i].getElementsByClassName('index')[0].textContent));
+            }
+
+            rows[i].setAttribute('id', 'row' + i);
+            rows[i].getElementsByClassName('index')[0].textContent = i.toString();
+        }
+        localStorage.setItem("items", mapToJson(itemsMap));
+    }
+
+    function addRow(id, text) {
+        let tr = document.createElement("tr");
+        tr.setAttribute('class', 'content-row');
+
+        let td = document.createElement("td");
+        let newText = document.createTextNode(id);
+        td.appendChild(newText);
+        td.setAttribute('class', 'index');
+        tr.appendChild(td);
+
+        let values = text.split(",");
+        for (let i = 0; i < Math.min(values.length, 5); i++) {
+            td = document.createElement("td");
+            newText = document.createTextNode(values[i]);
+            td.appendChild(newText);
+            tr.appendChild(td);
+        }
+
+        content.appendChild(tr);
+        renumerate();
+    }
+
+    function deleteRow(rowId) {
+        const row = document.getElementById("row" + rowId);
+        if (row) {
+            row.parentNode.removeChild(row);
+        } else {
+            alert("Такой строчки не существует");
+        }
+        renumerate();
+    }
+
+    function submitForm(e) {
+        if (e == null) {
+            return;
+        }
+        itemsMap.set(count, input.value);
+        localStorage.setItem("items", mapToJson(itemsMap));
+        addRow(count, input.value);
+        count++;
+        input.value = "";
+    }
+
+    for (let key of data.keys()) {
+        addRow(key, data.get(key));
+    }
+
+    function clearAll(e) {
+        if (e == null) {
+            return;
+        }
+        localStorage.removeItem("items");
+        itemsMap = new Map();
+        localStorage.setItem("items", mapToJson(itemsMap));
+        count = 0;
+        while (content.firstChild) {
+            content.removeChild(content.firstChild);
+        }
+        renumerate()
+    }
+
+    function deleteLine(e) {
+        if (e == null) {
+            return;
+        }
+        itemsMap.delete(parseInt(inputId.value));
+        localStorage.setItem("items", mapToJson(itemsMap));
+        deleteRow(inputId.value);
+        inputId.value = "";
+    }
+
+    function mapToJson(map) {
+        return JSON.stringify([...map]);
+    }
+
+    function jsonToMap(jsonStr) {
+        return new Map(JSON.parse(jsonStr));
+    }
+</script>
+</html>
