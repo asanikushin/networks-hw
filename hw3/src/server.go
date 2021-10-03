@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"github.com/go-chi/chi/v5"
+	"github.com/shopspring/decimal"
 	"net/http"
 	"time"
 
@@ -34,24 +35,26 @@ func PostSaveOrder(w http.ResponseWriter, r *http.Request) error {
 	db, ok := ctx.Value("DB").(*gorm.DB)
 	if !ok {
 		return APIErrorWithData(w, http.StatusInternalServerError, "no db")
-
 	}
 	order := Order{}
 	decoder := json.NewDecoder(r.Body)
 
 	if err := decoder.Decode(&order); err != nil {
-		return APIErrorWithData(w, http.StatusBadRequest, err)
-
+		return APIErrorWithData(w, http.StatusBadRequest, err.Error())
+	}
+	if !order.Status.Validate() {
+		return APIErrorWithData(w, http.StatusBadRequest, "invalid status")
+	}
+	if order.Amount.LessThanOrEqual(decimal.Zero) {
+		return APIErrorWithData(w, http.StatusBadRequest, "amount must be positive")
 	}
 
 	tx := db.Create(&order)
 	if tx.Error == nil {
 		return APIOKWithStatus(w, http.StatusCreated, order)
-
 	}
 	if IsAlreadyExistedErr(tx.Error) {
 		return APIOKWithStatus(w, http.StatusOK, "key already existed")
-
 	}
 	return APIErrorWithData(w, http.StatusInternalServerError, tx.Error)
 }

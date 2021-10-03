@@ -11,7 +11,10 @@ import (
 	glog "gorm.io/gorm/logger"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/go-chi/cors"
 	"github.com/go-chi/httplog"
+
+	"github.com/shopspring/decimal"
 )
 
 type OrderStatus string
@@ -49,11 +52,11 @@ func (p OrderStatus) Validate() bool {
 
 type Order struct {
 	gorm.Model
-	ExternalID string      `gorm:"uniqueIndex" json:"external_id"`
-	ClientID   string      `json:"client_id"`
-	Amount     string      `json:"amount"`
-	ContractID string      `json:"contract_id"`
-	Status     OrderStatus `sql:"type:order_status" json:"status"`
+	ExternalID string          `gorm:"uniqueIndex" json:"external_id"`
+	ClientID   string          `json:"client_id"`
+	Amount     decimal.Decimal `json:"amount"`
+	ContractID string          `json:"contract_id"`
+	Status     OrderStatus     `sql:"type:order_status" json:"status"`
 }
 
 func main() {
@@ -82,6 +85,14 @@ func main() {
 
 	r := chi.NewRouter()
 	r.Use(httplog.RequestLogger(logger))
+	r.Use(cors.Handler(cors.Options{
+		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"*"},
+		ExposedHeaders:   []string{"Link"},
+		AllowCredentials: true,
+		MaxAge:           300, // Maximum value not ignored by any of major browsers
+		Debug:            true,
+	}))
 	r.Use(func(h http.Handler) http.Handler {
 		return SetDBMiddleware(h, db)
 	})
