@@ -1,0 +1,241 @@
+<!--
+Задание 3.  Реализовать простой справочник с сохранением данных на сервере.
+Хранение данных в СУБД.
+Дополнить решение контролем вводимых значений
+-->
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Anikushin hw3, N 2</title>
+    <style>
+        table, th, td {
+            border: thin solid;
+            width: 10cm
+        }
+    </style>
+</head>
+<body>
+<div id="task">
+    <h1><a href="https://docs.google.com/document/d/1-OuKdZ0UWr99ZXLl_wgB3Jwpw7LfSMO5j8Yo34coTxY/edit">Задание 3</a>
+    </h1>
+    <div>
+        Реализовать простой справочник с сохранением данных на сервере.
+        Хранение данных в СУБД.
+        Дополнить решение контролем вводимых значений.<br>
+        Справочник должен:
+        <ol>
+            <li> отображаться в виде таблицы</li>
+            <li>содержать несколько полей 5. Первое поле ключевое.</li>
+            <li>добавление элемента справочника по нажатию Enter в одном поле, где значения отделяются запятой</li>
+            <li>позволять удалять отдельные элементы по номеру строки</li>
+        </ol>
+    </div>
+</div>
+<div class="data-storage">
+    <h1>Решение</h1>
+    <form id="form" onsubmit="submitForm(event)">
+        <label for="new">Новая запись: </label><input id="new" type="text"/>
+    </form>
+    <h2>Объекты</h2>
+    <table id="storage-show">
+        <thead>
+        <tr>
+            <th>Номер</th>
+            <th>Ключ</th>
+            <th>Клиент</th>
+            <th>Сумма</th>
+            <th>Догвор</th>
+            <th>Статус</th>
+        </tr>
+        </thead>
+        <tbody id="content"></tbody>
+    </table>
+    <hr>
+    <label for="removeInd">Номер строки: </label><input id="removeInd" type="text"/>
+    <button id="removeButton" onclick="deleteLine(event)">Удалить строку</button>
+    <button id="clearButton" onclick="clearAll(event)">Удалить все</button>
+</div>
+</body>
+<script>
+    const content = document.getElementById("content");
+    const input = document.getElementById("new");
+    const inputId = document.getElementById("removeInd");
+
+    let itemsMap = localStorage.getItem("items")
+        ? jsonToMap(localStorage.getItem("items"))
+        : new Map;
+
+    localStorage.setItem("items", mapToJson(itemsMap));
+    const data = jsonToMap(localStorage.getItem("items"));
+    let count = data.size;
+
+    function parseInput(input) {
+        let values = input.split(",");
+        return {
+            "external_id": values[0],
+            "client_id": values[1],
+            "amount": values[2],
+            "contract_id": values[3],
+            "status": values[4]
+        }
+    }
+
+    function orderToRow(order) {
+        let tr = document.createElement("tr");
+        tr.setAttribute('class', 'content-row');
+
+        let td = document.createElement("td");
+        td.setAttribute('class', 'index');
+        tr.appendChild(td);
+
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(order["external_id"]));
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(order["client_id"]));
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(order["amount"]));
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(order["contract_id"]));
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(order["status"]));
+        tr.appendChild(td);
+
+        return tr
+    }
+
+    function renumerate() {
+        let rows = content.getElementsByClassName('content-row')
+        for (let i = 0; i < rows.length; ++i) {
+            rows[i].setAttribute('id', 'row' + i);
+            rows[i].getElementsByClassName('index')[0].textContent = i.toString();
+        }
+    }
+
+    function postData(url = '', data = {}) {
+        console.log(data)
+        return fetch(url, {
+            method: 'POST',
+            mode: 'no-cors',
+            cache: 'no-cache',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            redirect: 'follow',
+            referrerPolicy: 'no-referrer',
+            body: JSON.stringify(data)
+        });
+    }
+
+    function addRow(id, text) {
+        let tr = orderToRow(parseInput(text));
+        tr.getElementsByClassName("index")[0].appendChild(document.createTextNode(id));
+
+        content.append(tr);
+        renumerate();
+    }
+
+    function deleteRow(rowId) {
+        const row = document.getElementById("row" + rowId);
+        if (row) {
+            row.parentNode.removeChild(row);
+        } else {
+            alert("Такой строчки не существует");
+        }
+        renumerate();
+    }
+
+    function updateTableAndLocal() {
+        itemsMap.set(count, input.value);
+        localStorage.setItem("items", mapToJson(itemsMap));
+        // addRow(count, input.value);
+        count++;
+    }
+
+
+    function submitForm(e) {
+        if (e == null) {
+            return;
+        }
+        let values = input.value.split(",");
+        console.log(values)
+
+        if (values.length !== 5) {
+            alert("Введите ровно 5 значений")
+            return;
+        }
+
+        postData("http://localhost:8080/order", parseInput(input.value))
+            .then(response => {
+                if (!response.ok) {
+                    throw `Server error: [${response.status}] [${response.statusText}] [${response.url}]`;
+                }
+                return response;
+            })
+            .then(response => response.json())
+            .then(result => {
+                console.log('Success:', result);
+            })
+            .catch(error => {
+                console.log('Error:', error);
+            })
+        // .then(response => {
+        //         if (response.status === 201) {
+        //             updateTableAndLocal(response.json()["data"])
+        //         } else {
+        //             alert(response.json()["data"])
+        //         }
+        //     }
+        // )
+        updateTableAndLocal()
+        input.value = "";
+    }
+
+    // for (let key of data.keys()) {
+    //     addRow(key, data.get(key));
+    // }
+
+    function clearAll(e) {
+        if (e == null) {
+            return;
+        }
+        localStorage.removeItem("items");
+        itemsMap = new Map();
+        localStorage.setItem("items", mapToJson(itemsMap));
+        count = 0;
+        while (content.firstChild) {
+            content.removeChild(content.firstChild);
+        }
+        renumerate()
+    }
+
+    function deleteLine(e) {
+        if (e == null) {
+            return;
+        }
+        itemsMap.delete(parseInt(inputId.value));
+        localStorage.setItem("items", mapToJson(itemsMap));
+        deleteRow(inputId.value);
+        inputId.value = "";
+    }
+
+    function mapToJson(map) {
+        return JSON.stringify([...map]);
+    }
+
+    function jsonToMap(jsonStr) {
+        return new Map(JSON.parse(jsonStr));
+    }
+</script>
+</html>
