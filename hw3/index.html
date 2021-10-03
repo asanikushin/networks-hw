@@ -36,7 +36,7 @@
 <div class="data-storage">
     <h1>Решение</h1>
     <form id="form" onsubmit="submitForm(event)">
-        <label for="new">Новая запись: </label><input id="new" type="text"/>
+        <label for="new">Новая запись: </label><input id="new" type="text" style="width: 20cm"/>
     </form>
     <h2>Объекты</h2>
     <table id="storage-show">
@@ -55,21 +55,15 @@
     <hr>
     <label for="removeInd">Номер строки: </label><input id="removeInd" type="text"/>
     <button id="removeButton" onclick="deleteLine(event)">Удалить строку</button>
-    <button id="clearButton" onclick="clearAll(event)">Удалить все</button>
 </div>
 </body>
 <script>
     const content = document.getElementById("content");
     const input = document.getElementById("new");
     const inputId = document.getElementById("removeInd");
+    const externalIDClass = "external_id"
 
-    let itemsMap = localStorage.getItem("items")
-        ? jsonToMap(localStorage.getItem("items"))
-        : new Map;
-
-    localStorage.setItem("items", mapToJson(itemsMap));
-    const data = jsonToMap(localStorage.getItem("items"));
-    let count = data.size;
+    let count = 0;
 
     function parseInput(input) {
         let values = input.split(",");
@@ -93,6 +87,7 @@
 
         td = document.createElement("td");
         td.appendChild(document.createTextNode(order["external_id"]));
+        td.setAttribute('class', 'externalIDClass');
         tr.appendChild(td);
 
         td = document.createElement("td");
@@ -138,8 +133,8 @@
         });
     }
 
-    function addRow(id, text) {
-        let tr = orderToRow(parseInput(text));
+    function addRow(id, order) {
+        let tr = orderToRow(order);
         tr.getElementsByClassName("index")[0].appendChild(document.createTextNode(id));
 
         content.append(tr);
@@ -150,16 +145,19 @@
         const row = document.getElementById("row" + rowId);
         if (row) {
             row.parentNode.removeChild(row);
+            const external_id = row.getElementsByClassName("externalIDClass")[0].textContent
+            console.log(external_id)
+            fetch("/order/" + external_id, {
+                method: 'DELETE',
+            })
         } else {
             alert("Такой строчки не существует");
         }
         renumerate();
     }
 
-    function updateTableAndLocal() {
-        itemsMap.set(count, input.value);
-        localStorage.setItem("items", mapToJson(itemsMap));
-        // addRow(count, input.value);
+    function updateTableAndLocal(order) {
+        addRow(count, order);
         count++;
     }
 
@@ -176,66 +174,38 @@
             return;
         }
 
-        postData("http://localhost:8080/order", parseInput(input.value))
-            .then(response => {
-                if (!response.ok) {
-                    throw `Server error: [${response.status}] [${response.statusText}] [${response.url}]`;
-                }
-                return response;
-            })
+        postData("/order", parseInput(input.value))
             .then(response => response.json())
             .then(result => {
+                if (result["code"] === 201) {
+                    updateTableAndLocal(result["data"])
+                } else {
+                    alert(result["data"])
+                }
                 console.log('Success:', result);
             })
             .catch(error => {
-                console.log('Error:', error);
+                alert('Error: ' + error);
             })
-        // .then(response => {
-        //         if (response.status === 201) {
-        //             updateTableAndLocal(response.json()["data"])
-        //         } else {
-        //             alert(response.json()["data"])
-        //         }
-        //     }
-        // )
-        updateTableAndLocal()
         input.value = "";
     }
 
-    // for (let key of data.keys()) {
-    //     addRow(key, data.get(key));
-    // }
-
-    function clearAll(e) {
-        if (e == null) {
-            return;
-        }
-        localStorage.removeItem("items");
-        itemsMap = new Map();
-        localStorage.setItem("items", mapToJson(itemsMap));
-        count = 0;
-        while (content.firstChild) {
-            content.removeChild(content.firstChild);
-        }
-        renumerate()
-    }
+    fetch("/order")
+        .then(response => response.json())
+        .then(result => {
+            const orders = result["data"]["orders"]
+            for (let i = 0; i < orders.length; i++) {
+                addRow(i, orders[i])
+            }
+            count = orders.length
+        })
 
     function deleteLine(e) {
         if (e == null) {
             return;
         }
-        itemsMap.delete(parseInt(inputId.value));
-        localStorage.setItem("items", mapToJson(itemsMap));
         deleteRow(inputId.value);
         inputId.value = "";
-    }
-
-    function mapToJson(map) {
-        return JSON.stringify([...map]);
-    }
-
-    function jsonToMap(jsonStr) {
-        return new Map(JSON.parse(jsonStr));
     }
 </script>
 </html>
