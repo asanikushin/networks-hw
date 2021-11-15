@@ -22,6 +22,7 @@
 <div id="task">
     <h1><a href="https://docs.google.com/document/d/1-OuKdZ0UWr99ZXLl_wgB3Jwpw7LfSMO5j8Yo34coTxY/edit">Задание 2</a>
     </h1>
+    <h2>Аникушин Антон</h2>
     <div>
         <p>Справочник должен</p>
         <ol>
@@ -116,10 +117,27 @@
         renumerate();
     }
 
+    function checkKeyField(key) {
+        for (let value of itemsMap.values()) {
+            let values = value.split(",")
+            if (key === values[0]) {
+                alert("Такой ключ уже есть")
+                return false;
+            }
+        }
+        return true;
+    }
+
     function submitForm(e) {
         if (e == null) {
             return;
         }
+        let values = input.value.split(",");
+        console.log(values)
+        if (!checkKeyField(values[0])) {
+            return;
+        }
+
         itemsMap.set(count, input.value);
         localStorage.setItem("items", mapToJson(itemsMap));
         addRow(count, input.value);
