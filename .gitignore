@@ -1,1 +1,4 @@
 .idea/
+.DS_Store
+hw3-pg-db/
+test.db

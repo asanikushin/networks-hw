@@ -1,0 +1,23 @@
+version: '3'
+
+services:
+  postgresql:
+    image: bitnami/postgresql:12.4.0
+    ports:
+      - '5252:5432'
+    environment:
+      POSTGRESQL_USERNAME: hw3
+      POSTGRESQL_PASSWORD: P@ssw0rd
+      POSTGRESQL_PGAUDIT_LOG: all, -misc
+      POSTGRESQL_DATABASE: hw3db
+    volumes:
+      - ./hw3-pg-db:/bitnami/postgresql
+
+  hw3server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      DBDSN: "host=postgresql user=hw3 password=P@ssw0rd dbname=hw3db port=5432 sslmode=disable TimeZone=Europe/Moscow"
+    ports:
+      - '8080:3000'
