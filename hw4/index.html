@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Аникушин Антон, дз 4</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+    <style>
+        div.example {
+            margin: 3px;
+            width: 80px;
+            display: none;
+            height: 80px;
+            float: left;
+            background: blueviolet;
+        }
+
+        .removeClass {
+            color: cadetblue;
+        }
+
+        .remove {
+            color: blue;
+        }
+
+        .shifted {
+            position: relative;
+            left: 40px;
+        }
+    </style>
+</head>
+<body>
+<div id="task">
+    <h1><a href="https://docs.google.com/document/d/1_yD9_kCnUEbAp_rzY3nM7QbmEWAgu9L0uTOV3AVTsnA/edit">Задание 4</a>
+    </h1>
+    <div class="func">
+        <p>Справочник должен</p>
+        <ol class="root">
+            <li class="removeClass">+<code> removeClass()</code></li>
+            <li>
+                <div class="shifted">
+                    +
+                    <code class="item-offset"> offsetParent()</code>
+                    some text
+                </div>
+            </li>
+            <li><code> :file</code></li>
+            <li>+<code> css()</code></li>
+            <li class="remove">+<code> detach(), remove()</code></li>
+            <li>+<code> parents()</code></li>
+            <li><code> jQuery.proxy()</code></li>
+            <li class="click">+<code> click()</code></li>
+            <li><code> keyup()</code></li>
+            <li>+<code> fadeIn(), fadeOut()</code></li>
+            <li class="removeClass">removeClass copy</li>
+        </ol>
+    </div>
+
+    <div>
+        <p>
+            <span>
+                <b>My parents are: </b>
+            </span>
+        </p>
+    </div>
+
+    <div>
+        <div class="example"></div>
+        <div class="example"></div>
+        <div class="example"></div>
+    </div>
+
+</div>
+
+
+<script>
+    function getRandomArbitrary(min, max) {
+        return Math.floor(Math.random() * (max - min)) + min
+    }
+
+    // generate random color for button and borders
+    function getRandomColor() {
+        const letters = '0123456789ABCDEF'
+        let color = '#'
+        for (let i = 0; i < 6; i++) {
+            color += letters[getRandomArbitrary(0, 16)]
+        }
+        return color
+    }
+</script>
+<script>
+    color = getRandomColor()
+    let direction = 1;
+
+    $(".item-offset").offsetParent().css("color", color);
+
+    $("li.click").click(function () {
+        let x;
+        if (direction === 1) {
+            x = $("div.example:hidden");
+            x.first().fadeIn("slow");
+            if (x.length === 1) {
+                direction = -1;
+            }
+        } else {
+            x = $("div.example:visible");
+            x.first().fadeOut("slow");
+            if (x.length === 1) {
+                direction = 1;
+            }
+        }
+    });
+
+    $("li.removeClass").click(function () {
+        $(".removeClass").removeClass("removeClass")
+    });
+    $("li.remove").click(function () {
+        $(".remove").detach()
+    });
+
+    innerB = $("b")
+    const parentEls = innerB.parents()
+        .map(function () {
+            return this.tagName;
+        })
+        .get()
+        .join(", ");
+    innerB.append("<strong>" + parentEls + "</strong>");
+</script>
+
+</body>
+</html>

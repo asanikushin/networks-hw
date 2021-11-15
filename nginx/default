@@ -1,0 +1,12 @@
+server {
+        listen 80;
+        listen [::]:80;
+
+        location /homework/ {
+                alias /home/asanikushin/networks-hw/;
+        }
+
+	location / {
+		proxy_pass http://localhost:8080/;
+	}
+}
