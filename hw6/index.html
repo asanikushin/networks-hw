@@ -40,7 +40,7 @@
 <script>
     const content = document.getElementById("content");
 
-    function orderToRow(element) {
+    function dataToRow(element) {
 
         let tr = document.createElement("tr");
 
@@ -63,21 +63,18 @@
     }
 
     function addRow(order) {
-        let tr = orderToRow(order);
+        let tr = dataToRow(order);
 
         content.append(tr);
     }
 
     np = 526
     const hr = "https://apidata.mos.ru/v1/datasets/" + np + "/rows?api_key=" + key + "&$top=100"
-    $.get(hr, function (data) { //var
+    $.get(hr, function (data) {
         data.FullDescription = null
-        // console.log(data)
         for (const x in data) {
             addRow(data[x])
-            // console.log(data[x])
         }
-        // $(".data-storage").html("<pre>" + s + "</pre>")
     })
 </script>
 </html>
