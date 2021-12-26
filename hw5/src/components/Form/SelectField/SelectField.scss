@@ -1,0 +1,22 @@
+.SelectField {
+  position: relative;
+}
+
+.SelectField-Label{
+  font-size: 13px;
+  font-weight: bold;
+  font-family: "Open Sans Semibold", sans-serif;
+}
+
+.SelectField-Input {
+  &.form-control {
+    height: 35px;
+    border-radius: 3px;
+    border: 1px solid #dddddd;
+    font-size: 14px;
+
+    &::placeholder {
+      color: #898989;
+    }
+  }
+}
