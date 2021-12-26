@@ -114,7 +114,7 @@ func DeleteOrderByExternalID(w http.ResponseWriter, r *http.Request) error {
 	}
 
 	var order Order
-	tx := db.Delete(&order, &Order{ExternalID: chi.URLParam(r, "externalID")})
+	tx := db.Unscoped().Delete(&order, &Order{ExternalID: chi.URLParam(r, "externalID")})
 
 	if tx.Error != nil {
 		return APIErrorWithData(w, http.StatusInternalServerError, tx.Error)

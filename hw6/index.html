@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Анкушин Антон, задание 6</title>
+    <style>
+        table, th, td {
+            border: thin solid;
+        }
+    </style>
+    <script src="key.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+</head>
+<body>
+<div id="task">
+    <h1>
+        <a href="https://docs.google.com/document/d/1eImPurNr5lkfkPgQ4Pf7RQSrZfFsSSvPkC5Zjg44oVM/edit">Задание 6</a>
+    </h1>
+    <div>
+        Скачать данные через API в формате OpenData, посторить по ним таблицу.
+    </div>
+</div>
+<div class="data-storage">
+
+    <table id="storage-show">
+        <thead>
+        <tr>
+            <th>Global ID</th>
+            <th>Common name</th>
+            <th>Adm area</th>
+            <th>Website</th>
+        </tr>
+        </thead>
+        <tbody id="content"></tbody>
+    </table>
+    <hr>
+</div>
+</body>
+<script>
+    const content = document.getElementById("content");
+
+    function orderToRow(element) {
+
+        let tr = document.createElement("tr");
+
+        let td = document.createElement("td");
+        td.appendChild(document.createTextNode(element.global_id));
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(element.Cells.CommonName));
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(element.Cells.ObjectAddress[0].AdmArea));
+        tr.appendChild(td);
+
+        td = document.createElement("td");
+        td.appendChild(document.createTextNode(element.Cells.WebSite));
+        tr.appendChild(td);
+        return tr
+    }
+
+    function addRow(order) {
+        let tr = orderToRow(order);
+
+        content.append(tr);
+    }
+
+    np = 526
+    const hr = "https://apidata.mos.ru/v1/datasets/" + np + "/rows?api_key=" + key + "&$top=100"
+    $.get(hr, function (data) { //var
+        data.FullDescription = null
+        // console.log(data)
+        for (const x in data) {
+            addRow(data[x])
+            // console.log(data[x])
+        }
+        // $(".data-storage").html("<pre>" + s + "</pre>")
+    })
+</script>
+</html>

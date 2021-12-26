@@ -101,6 +101,8 @@ func main() {
 	r.Method("GET", "/order", Handler(GetPaginateOrders))
 	r.Method("GET", "/order/{externalID}", Handler(GetOrderByExternalID))
 	r.Method("DELETE", "/order/{externalID}", Handler(DeleteOrderByExternalID))
+	// /order/123123
+	// /order/2414
 
 	err = http.ListenAndServe(":3000", r)
 	if err != nil {
